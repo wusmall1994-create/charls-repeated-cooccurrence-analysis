@@ -8,3 +8,10 @@ for k in ['OPENBLAS_NUM_THREADS','OMP_NUM_THREADS','MKL_NUM_THREADS']:os.environ
 for p in ['scripts/09_build_comorbidity_state_data.py','scripts/11_build_functional_multistate_data.py','work/decision_validation.py','work/acer_prepare.py','work/acer_analysis.py','work/acer_unadjusted.py','work/validation_mi.py','work/enhancement_analysis.py','work/prediction_increment.py','work/cumulative_bias_checks.py','work/submission_sensitivity.py','work/revision_sensitivity.py']:
  print('Running '+p,flush=True)
  subprocess.run([sys.executable,p],check=True)
+
+
+# Expanded missing-data and history-composition analyses.
+subprocess.run([sys.executable, 'work/prepare_revision2.py'], check=True)
+subprocess.run([os.environ.get('RSCRIPT', 'Rscript'), 'work/expanded_mi.R'], check=True)
+subprocess.run([sys.executable, 'work/pool_expanded_mi.py'], check=True)
+subprocess.run([sys.executable, 'work/history_composition.py'], check=True)

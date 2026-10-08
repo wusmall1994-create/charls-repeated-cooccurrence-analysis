@@ -66,3 +66,21 @@ The outcome is next-wave functional status, not time to first disability. Interv
 `work/revision_sensitivity.py` uses the locked `work/acer/all.pkl`, `observed.pkl`, `history.pkl` and `model_results.json` produced by the preceding steps, plus baseline variables from the authorized Harmonized CHARLS D file. It first verifies the unchanged main current and repeated-versus-first RRs and observation weights. It then produces `work/acer/enhancements/revision_sensitivity.json` with aggregate estimates, confidence intervals, interaction tests, group-specific event counts, restriction flows and missingness counts.
 
 Complete cases require all baseline adjustment variables before substitution. The baseline functional restriction requires complete 2011 ADL items and no reported difficulty; unknown status is excluded separately. Both restrictions refit observation weights and outcome models. Age interactions compare baseline ages 45–59 and ≥60 years while retaining continuous-age adjustment. Hukou interactions use original rural/urban registration, exclude unknown hukou and do not measure residence. Models share other adjustment coefficients across strata and use participant-clustered variance. Interaction tests compare direct contrasts, not separate significance levels. These analyses were specified after the primary analysis, are not preregistered and do not correct for multiplicity. No participant records or aggregate results are uploaded to this source-only repository.
+
+
+## Expanded missing-data and supported history analyses
+
+The extended pipeline additionally requires R 4.6.1 with `mice` 3.19.0 and `jsonlite`. Use an existing R installation; set `RSCRIPT` to its Rscript executable if it is not on PATH. Install these R packages if absent (`install.packages(c("mice", "jsonlite"))`).
+
+After the existing analyses, the runner executes:
+
+1. `work/prepare_revision2.py`: describes complete versus incomplete covariate groups and builds a participant-level imputation matrix from the authorized raw files and locked cohort.
+2. `work/expanded_mi.R`: runs 20 item-level chained-equations imputations with 20 iterations, continuous-variable predictive mean matching and categorical logistic models. It preserves known disease-item responses and does not impute exposures, outcomes or histories.
+3. `work/pool_expanded_mi.py`: refits observation weights and current and history models, pools log risk ratios and participant-clustered variances, and checks preservation of observed values.
+4. `work/history_composition.py`: tabulates nested exposure-count support, standardizes a one-wave co-occurrence increase at fixed depressive-symptom count and origin wave, runs 500 participant bootstraps, and fits a preceding-wave exposure sensitivity model.
+
+Private intermediate CSV, pickle and RDS files remain under `work/acer/revision2_private`; never redistribute them. Aggregate outputs are under `work/acer/enhancements`: `missingness_comparison.json`, `expanded_mi_results.json`, `expanded_mi_diagnostics.json`, `supported_composition.json` and `lagged_exposure.json`. The public repository distributes source only; submission supplementary materials provide aggregate results.
+
+The composition contrast uses only observed adjacent count cells with at least 20 intervals, five events and five non-events per cell. The support rule is fixed in bootstrap draws. It conditions on nested depressive-symptom histories and is not RERI, a causal decomposition or proof of an independent digestive effect. Multiple imputation assumes conditionally missing-at-random covariates and does not resolve selection into observed histories. The dated specification in `additional_analysis_specification.txt` was prepared after primary analyses and before fitting these added models; it is not an original prospective or preregistered protocol.
+
+The R imputation uses independently seeded chains, allowing parallel execution without changing results when worker count changes. Set `MI_CORES` to limit workers (default at most 10, leaving two detected cores free). Master seed 261008 generates the recorded chain seeds. Classical split-chain variance ratios of imputed means and chain traces support diagnostic review; no additional Stan installation is required.
