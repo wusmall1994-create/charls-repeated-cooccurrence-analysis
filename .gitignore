@@ -1,0 +1,15 @@
+# Only analysis source, instructions and dependency files may be tracked.
+*
+!*/
+!*.py
+!README.md
+!requirements.txt
+!.gitignore
+.git/
+__pycache__/
+.analysis_deps/
+.venv/
+outputs/
+data/
+work/acer/
+work/decision_validation/
